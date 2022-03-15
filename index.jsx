@@ -1,5 +1,5 @@
-import { createMutable, unwrap } from "solid-js/store"
-import { observable, onMount, onCleanup, createEffect } from "solid-js"
+import { createMutable } from "solid-js/store"
+import { For, onMount, onCleanup, createEffect } from "solid-js"
 
 // DOM elements
 let scrollbar
@@ -7,8 +7,6 @@ let container
 let nodes
 
 // local vars
-let listObservable
-let listSubscription
 let list = []
 let start = 0
 let end = 10
@@ -83,12 +81,18 @@ const update = () => {
 }
 
 export default function Windowed(p) {
-    listObservable = observable(p.each)
-    listSubscription = listObservable.subscribe((data) => {
-        list = data
+    const initialize = () => {
+        list = p.each
 
         // start with 10 to know the average height of the children
         state.filtered = list.slice(start, end)
+    }
+
+    initialize()
+
+    createEffect(() => {
+        // On Update, Re-Initialize
+        initialize()
     })
 
     // in case we didn't fill the container, render more items
@@ -120,7 +124,6 @@ export default function Windowed(p) {
     // on onCleanup the resize listener must be removed
     onCleanup(() => {
         window.removeEventListener("resize", onResize)
-        listSubscription.unsubscribe()
     })
 
     return (
