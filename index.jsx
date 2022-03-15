@@ -1,5 +1,3 @@
-// From: https://github.com/titoBouzout/solid-windowed
-
 import { createMutable, unwrap } from "solid-js/store"
 import { observable, onMount, onCleanup, createEffect } from "solid-js"
 
@@ -10,6 +8,7 @@ let nodes
 
 // local vars
 let listObservable
+let listSubscription
 let list = []
 let start = 0
 let end = 10
@@ -85,7 +84,7 @@ const update = () => {
 
 export default function Windowed(p) {
     listObservable = observable(p.each)
-    listObservable.subscribe((data) => {
+    listSubscription = listObservable.subscribe((data) => {
         list = data
 
         // start with 10 to know the average height of the children
@@ -119,7 +118,10 @@ export default function Windowed(p) {
         updateHeights()
     })
     // on onCleanup the resize listener must be removed
-    onCleanup(() => window.removeEventListener("resize", onResize))
+    onCleanup(() => {
+        window.removeEventListener("resize", onResize)
+        listSubscription.unsubscribe()
+    })
 
     return (
         /* provides the scrollbar */
